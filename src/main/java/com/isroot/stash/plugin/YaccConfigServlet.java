@@ -75,6 +75,7 @@ public class YaccConfigServlet extends HttpServlet {
         Settings settings = repositoryHookService.createSettingsBuilder()
                 .addAll(settingsMap)
                 .build();
+
         configValidator.validate(settings, new SettingsValidationErrorsImpl(fieldErrors), null);
     }
 

@@ -1,26 +1,24 @@
 package com.isroot.stash.plugin;
 
-import static com.google.common.base.Strings.isNullOrEmpty;
-
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-
 import javax.annotation.Nonnull;
 
+import com.atlassian.bitbucket.scope.Scope;
+import com.atlassian.bitbucket.setting.Settings;
+import com.atlassian.bitbucket.setting.SettingsValidationErrors;
+import com.atlassian.bitbucket.setting.SettingsValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.atlassian.bitbucket.repository.Repository;
-import com.atlassian.bitbucket.setting.RepositorySettingsValidator;
-import com.atlassian.bitbucket.setting.Settings;
-import com.atlassian.bitbucket.setting.SettingsValidationErrors;
+import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * @author sdford
  * @since 2013-05-11
  */
-public class ConfigValidator implements RepositorySettingsValidator {
+public class ConfigValidator implements SettingsValidator {
     private static final Logger log = LoggerFactory.getLogger(ConfigValidator.class);
 
     private final JiraService jiraService;
@@ -30,17 +28,16 @@ public class ConfigValidator implements RepositorySettingsValidator {
     }
 
     @Override
-    public void validate(@Nonnull Settings settings, @Nonnull SettingsValidationErrors errors,
-                         @Nonnull Repository repository) {
-        validationRegex(settings, errors, "commitMessageRegex");
-        validationRegex(settings, errors, "committerEmailRegex");
-        validationRegex(settings, errors, "excludeByRegex");
-        validationRegex(settings, errors, "excludeBranchRegex");
-        validationRegex(settings, errors, "branchNameRegex");
+    public void validate(@Nonnull final Settings settings, @Nonnull final SettingsValidationErrors settingsValidationErrors, @Nonnull final Scope scope) {
+        validationRegex(settings, settingsValidationErrors, "commitMessageRegex");
+        validationRegex(settings, settingsValidationErrors, "committerEmailRegex");
+        validationRegex(settings, settingsValidationErrors, "excludeByRegex");
+        validationRegex(settings, settingsValidationErrors, "excludeBranchRegex");
+        validationRegex(settings, settingsValidationErrors, "branchNameRegex");
 
         if (settings.getBoolean("requireJiraIssue", false)) {
             if (!jiraService.doesJiraApplicationLinkExist()) {
-                errors.addFieldError("requireJiraIssue", "Can't be enabled because a JIRA application link does not exist.");
+                settingsValidationErrors.addFieldError("requireJiraIssue", "Can't be enabled because a JIRA application link does not exist.");
             }
         }
 
@@ -48,7 +45,7 @@ public class ConfigValidator implements RepositorySettingsValidator {
         if (!isNullOrEmpty(jqlMatcher)) {
             List<String> jqlErrors = jiraService.checkJqlQuery(jqlMatcher);
             for (String err : jqlErrors) {
-                errors.addFieldError("issueJqlMatcher", err);
+                settingsValidationErrors.addFieldError("issueJqlMatcher", err);
             }
         }
     }
@@ -66,4 +63,5 @@ public class ConfigValidator implements RepositorySettingsValidator {
         }
 
     }
+
 }
